@@ -9,8 +9,14 @@ This repo is designed to train a digit classifier on the most basic neural netwo
     * note: no convolution layer 
 3. Train the model 
 4. optimize the accuracy on the test set 
+```
 Training Accuracy:0.97
 Testing Accuracy:0.96
+```
 
 ## Pt. 2 
 1. use a CNN to train the mnist
+```
+Training Accuracy:0.93
+Testing Accuracy:0.92
+```
