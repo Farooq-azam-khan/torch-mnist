@@ -7,6 +7,8 @@ from constants import image_width, image_height
 from helpers import accuracy 
 import os 
 
+DEBUG: bool = bool(os.environ.get('DEBUG')) or False
+print(f'{DEBUG=}')
 
 batch_size = 64
 
@@ -17,17 +19,27 @@ class CNN_MNet(nn.Module):
         self.input_channels, self.output_channels = 1, 1
         self.conv = nn.Conv2d(in_channels=self.input_channels, 
                                 out_channels=self.output_channels, 
-                                kernel_size=1, 
+                                kernel_size=2, 
                                 stride=1, 
                                 padding=0, 
                                 padding_mode='zeros', 
                                 bias=True)
-        self.l1 = nn.Linear(self.image_height*self.image_width, 64)
+        self.output_height = int(np.floor((self.image_height + 2 * 0 - 1 * (2 - 1) - 1 ) / ( 1) + 1))
+        self.output_width = int(np.floor((self.image_width + 2 * 0 - 1 * (2 - 1) - 1 ) / ( 1) + 1))
+
+        print(f'cnn output shape: {self.output_width}, {self.output_height}')
+        self.l1 = nn.Linear(self.output_channels*self.output_height*self.output_width, 64)
         self.l2 = nn.Linear(64, 10)
 
     def forward(self, x): 
-        x = self.conv(x).reshape((x.shape[0], 
-                self.output_channels*self.image_width*self.image_height))
+        if DEBUG: 
+            print('before cnn', x.shape)
+        x = F.relu(self.conv(x))
+        if DEBUG:
+            print('after cnn', x.shape)
+
+        x = x.reshape((x.shape[0], 
+                self.output_channels*self.output_height*self.output_width))
         x = self.l1(x)
         x = F.relu(x)
         x = self.l2(x)
@@ -39,7 +51,7 @@ print(f'training dataset: {train_ds.shape}')
 train_dataset_labels = torch.tensor(np.load('./data/train-labels-idx1-ubyte.npy'), dtype=torch.long)
 print('Read Training Dataset and Labels')
 model = CNN_MNet()
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0)
+optimizer = optim.Adam(model.parameters(), lr=0.01)# SGD(model.parameters(), lr=0.001, momentum=0)
 criterion = nn.CrossEntropyLoss()
 epochs = 1
 from tqdm import trange 
